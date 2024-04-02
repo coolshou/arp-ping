@@ -1,0 +1,55 @@
+@echo ON
+
+set BAT=%0
+set sCMD=%1
+
+echo cmd %sCMD%
+if "%sCMD%" NEQ "" (
+  if "%sCMD%" NEQ "build" (
+    call :Clean
+  ) else (
+    call :Build
+  )
+) else (
+  call :Help
+)
+exit /b
+
+:Help
+echo =====%BAT% usage===============
+echo  %BAT% build : build x86/x64
+echo  %BAT%  : clean build
+echo ===================================
+exit /b
+
+:Build
+set VCPATH="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\"
+set PATH=%VCPATH%;%PATH%
+set LIB=""
+set LIBPATH=""
+set INCLUDE=""
+REM set Path="%SystemRoot%\System32\"
+%comspec% /k "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars32.bat"
+REM call "%VCPATH%vcvars32.bat"
+REM call "vcvarsall.bat" x86
+MSBuild arp-ping.sln /m /t:Rebuild /p:Configuration=Release;Platform=Win32
+REM mt -manifest "wlan.exe.manifest"  -outputresource:"Win32\Release\wlan.exe;#1"
+
+call "vcvarsall.bat" amd64
+MSBuild arp-ping.sln /m /t:Rebuild /p:Configuration=Release;Platform=x64
+REM mt -manifest "wlan.exe.manifest"  -outputresource:"x64\Release\wlan.exe;#1"
+
+exit /b
+
+:Clean
+set LIB=""
+set LIBPATH=""
+set INCLUDE=""
+REM set Path="%SystemRoot%\System32\"
+call "%VCPATH%vcvars32.bat"
+MSBuild arp-ping.sln /m /t:clean /p:Configuration=Release;Platform=Win32
+
+call "%VCPATH%vcvars64.bat"
+MSBuild arp-ping.sln /m /t:clean /p:Configuration=Release;Platform=x64
+
+exit /b
